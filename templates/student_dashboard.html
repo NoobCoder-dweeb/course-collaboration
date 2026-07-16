@@ -1,11 +1,19 @@
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <title>Student Dashboard</title>
-</head>
-<body>
-    <h1>Student Dashboard</h1>
-    <p><a href="{{ url_for('enroll_courses') }}">Enroll Courses</a></p>
-</body>
-</html>
+{% extends "base.html" %}
+
+{% block title %}Student Dashboard{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <p class="eyebrow">Student</p>
+        <h1>Student Dashboard</h1>
+    </div>
+</header>
+
+<section class="link-grid">
+    <a class="link-card" href="{{ url_for('enroll_courses') }}">
+        <strong>Enroll Courses</strong>
+        <span class="muted">Manage current semester course enrollment.</span>
+    </a>
+</section>
+{% endblock %}

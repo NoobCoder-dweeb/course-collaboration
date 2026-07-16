@@ -1,42 +1,64 @@
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <title>Confirm Enrollment</title>
-</head>
-<body>
-    <h1>Confirm Enrollment</h1>
+{% extends "base.html" %}
 
-    <p>Total selected credits: {{ total_credits }} / {{ max_credit_hours }}</p>
+{% block title %}Confirm Enrollment{% endblock %}
 
-    <h2>Courses to Add</h2>
-    {% set add_courses = courses | selectattr("id", "in", pending_add_ids) | list %}
-    {% if add_courses %}
-        <ul>
-            {% for course in add_courses %}
-                <li>{{ course.code }} - {{ course.title }}</li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p>None</p>
-    {% endif %}
+{% block content %}
+<header class="page-header">
+    <div>
+        <p class="eyebrow">Enrollment</p>
+        <h1>Confirm Enrollment</h1>
+    </div>
+</header>
 
-    <h2>Courses to Drop</h2>
-    {% set drop_courses = courses | selectattr("id", "in", pending_drop_ids) | list %}
-    {% if drop_courses %}
-        <ul>
-            {% for course in drop_courses %}
-                <li>{{ course.code }} - {{ course.title }}</li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p>None</p>
-    {% endif %}
+<section class="panel">
+    <div class="stats">
+        <div class="stat">
+            <span>Selected Credits</span>
+            <strong>{{ total_credits }} / {{ max_credit_hours }}</strong>
+        </div>
+    </div>
+
+    <div class="summary-grid">
+        <section>
+            <h2>Courses to Add</h2>
+            {% set add_courses = courses | selectattr("id", "in", pending_add_ids) | list %}
+            {% if add_courses %}
+                <ul class="summary-list">
+                    {% for course in add_courses %}
+                        <li>{{ course.code }} - {{ course.title }}</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="muted">None</p>
+            {% endif %}
+        </section>
+
+        <section>
+            <h2>Courses to Drop</h2>
+            {% set drop_courses = courses | selectattr("id", "in", pending_drop_ids) | list %}
+            {% if drop_courses %}
+                <ul class="summary-list">
+                    {% for course in drop_courses %}
+                        <li>{{ course.code }} - {{ course.title }}</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="muted">None</p>
+            {% endif %}
+        </section>
+    </div>
 
     <form method="post" action="{{ url_for('confirm_enrollment') }}">
-        <button type="submit">Confirm Save</button>
+        <div class="button-row">
+            <button type="submit">Confirm Save</button>
+        </div>
     </form>
+</section>
 
-    <p><a href="{{ url_for('enroll_courses') }}">Back to Enrollment</a></p>
-</body>
-</html>
+<section class="link-grid">
+    <a class="link-card" href="{{ url_for('enroll_courses') }}">
+        <strong>Back to Enrollment</strong>
+        <span class="muted">Review your selected courses.</span>
+    </a>
+</section>
+{% endblock %}
