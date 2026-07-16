@@ -10,6 +10,18 @@ student_courses = db.Table(
     db.Column("course_id", db.Integer, db.ForeignKey("course.id"), primary_key=True),
 )
 
+course_prerequisites = db.Table(
+    "course_prerequisites",
+    db.Column("course_id", db.Integer, db.ForeignKey("course.id"), primary_key=True),
+    db.Column("prerequisite_id", db.Integer, db.ForeignKey("course.id"), primary_key=True),
+)
+
+student_passed_courses = db.Table(
+    "student_passed_courses",
+    db.Column("student_id", db.Integer, db.ForeignKey("student.id"), primary_key=True),
+    db.Column("course_id", db.Integer, db.ForeignKey("course.id"), primary_key=True),
+)
+
 
 class Lecturer(db.Model):
     __tablename__ = "lecturer"
@@ -50,6 +62,14 @@ class Course(db.Model):
     assignments = db.relationship("Assignment", back_populates="course", lazy="select", cascade="all, delete-orphan")
     materials = db.relationship("CourseMaterial", back_populates="course", lazy="select", cascade="all, delete-orphan")
     students = db.relationship("Student", secondary=student_courses, back_populates="courses", lazy="select")
+    prerequisites = db.relationship(
+        "Course",
+        secondary=course_prerequisites,
+        primaryjoin=lambda: Course.id == course_prerequisites.c.course_id,
+        secondaryjoin=lambda: Course.id == course_prerequisites.c.prerequisite_id,
+        backref=db.backref("dependent_courses", lazy="select"),
+        lazy="select",
+    )
 
     def __repr__(self) -> str:
         return f"<Course {self.code} title={self.title}>"
@@ -98,6 +118,7 @@ class Student(db.Model):
     enrollment_year = db.Column(db.Integer, nullable=True)
 
     courses = db.relationship("Course", secondary=student_courses, back_populates="students", lazy="select")
+    passed_courses = db.relationship("Course", secondary=student_passed_courses, lazy="select")
 
     def set_password(self, password: str) -> None:
         self.password_hash = generate_password_hash(password)

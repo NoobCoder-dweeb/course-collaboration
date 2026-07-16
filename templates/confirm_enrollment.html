@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Confirm Enrollment</title>
+</head>
+<body>
+    <h1>Confirm Enrollment</h1>
+
+    <p>Total selected credits: {{ total_credits }} / {{ max_credit_hours }}</p>
+
+    <h2>Courses to Add</h2>
+    {% set add_courses = courses | selectattr("id", "in", pending_add_ids) | list %}
+    {% if add_courses %}
+        <ul>
+            {% for course in add_courses %}
+                <li>{{ course.code }} - {{ course.title }}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>None</p>
+    {% endif %}
+
+    <h2>Courses to Drop</h2>
+    {% set drop_courses = courses | selectattr("id", "in", pending_drop_ids) | list %}
+    {% if drop_courses %}
+        <ul>
+            {% for course in drop_courses %}
+                <li>{{ course.code }} - {{ course.title }}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>None</p>
+    {% endif %}
+
+    <form method="post" action="{{ url_for('confirm_enrollment') }}">
+        <button type="submit">Confirm Save</button>
+    </form>
+
+    <p><a href="{{ url_for('enroll_courses') }}">Back to Enrollment</a></p>
+</body>
+</html>

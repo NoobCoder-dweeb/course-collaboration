@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Enroll Courses</title>
+</head>
+<body>
+    <h1>Enroll Courses</h1>
+    {% if message %}
+        <p>{{ message }}</p>
+    {% endif %}
+    {% if errors %}
+        <ul>
+            {% for error in errors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <p>Total selected credits: {{ total_credits }} / {{ max_credit_hours }}</p>
+    <p>Prerequisites are satisfied only by courses already passed before this semester.</p>
+
+    <form method="post">
+        <table>
+            <thead>
+                <tr>
+                    <th>Select</th>
+                    <th>Code</th>
+                    <th>Title</th>
+                    <th>Credits</th>
+                    <th>Prerequisites</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for course in courses %}
+                    <tr>
+                        <td>
+                            <input
+                                type="checkbox"
+                                name="course_ids"
+                                value="{{ course.id }}"
+                                {% if course.id in selected_ids %}checked{% endif %}
+                            >
+                        </td>
+                        <td>{{ course.code }}</td>
+                        <td>{{ course.title }}</td>
+                        <td>{{ course.credits or 0 }}</td>
+                        <td>
+                            {% if course.prerequisites %}
+                                {{ course.prerequisites | map(attribute="code") | join(", ") }}
+                            {% else %}
+                                None
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if course.id in pending_add_ids %}
+                                Pending add
+                            {% elif course.id in pending_drop_ids %}
+                                Pending drop
+                            {% elif course.id in current_ids %}
+                                Enrolled
+                            {% elif course.id in passed_ids %}
+                                Passed
+                            {% else %}
+                                Available
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <button type="submit" name="action" value="preview">Update Preview</button>
+        <button type="submit" name="action" value="save">Save Changes</button>
+    </form>
+
+    <p><a href="{{ url_for('dashboard') }}">Back to Dashboard</a></p>
+</body>
+</html>
