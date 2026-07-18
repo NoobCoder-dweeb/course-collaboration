@@ -1,0 +1,25 @@
+{% extends "_base.html" %}
+{% from "_empty_state.html" import empty_state %}
+
+{% block title %}Assignments{% endblock %}
+
+{% block content %}
+<header class="page-header"><div><p class="eyebrow">{{ course.code }}</p><h1>Assignments</h1></div></header>
+<section class="summary-grid">
+    <div class="panel">
+        <h2>Add Assignment</h2>
+        <form class="form-stack" method="post">
+            <label>Title <input type="text" name="title" autocomplete="off" required></label>
+            <label>Requirements <textarea name="requirements" autocomplete="off" required></textarea></label>
+            <label>Deadline <input type="datetime-local" name="deadline" autocomplete="off" required></label>
+            <button type="submit">Save Assignment</button>
+        </form>
+    </div>
+    <div class="panel">
+        <h2>Current Assignments</h2>
+        {% for assignment in assignments %}
+            <article class="item"><strong>{{ assignment.title }}</strong><span class="muted">Due {{ assignment.deadline.strftime("%d %b %Y %H:%M") }}</span><p>{{ assignment.requirements }}</p><div class="button-row compact"><a class="button secondary" href="{{ url_for('lecturer_submissions', assignment_id=assignment.id) }}">Submissions</a><a class="button secondary" href="{{ url_for('edit_assignment', assignment_id=assignment.id) }}">Edit</a><form method="post" action="{{ url_for('delete_assignment', assignment_id=assignment.id) }}"><button class="danger" type="submit">Delete</button></form></div></article>
+        {% else %}{{ empty_state("No assignments yet", "Create the first assignment with requirements and a deadline.") }}{% endfor %}
+    </div>
+</section>
+{% endblock %}

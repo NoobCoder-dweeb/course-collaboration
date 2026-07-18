@@ -1,0 +1,51 @@
+{% extends "_base.html" %}
+{% from "_empty_state.html" import empty_state %}
+
+{% block title %}Student Dashboard{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <p class="eyebrow">Student</p>
+        <h1>Welcome, {{ student.name }}</h1>
+    </div>
+    <span class="badge {{ 'active' if student.is_member else '' }}">{{ "Member" if student.is_member else "Non-member" }}</span>
+</header>
+
+<section class="stats">
+    <div class="stat"><span>Enrolled Courses</span><strong>{{ student.courses|length }}</strong></div>
+    <div class="stat"><span>Submission Rule</span><strong>{{ "Unlimited before deadline" if student.is_member else "Two attempts per assignment" }}</strong></div>
+</section>
+
+<section class="link-grid">
+    <a class="link-card" href="{{ url_for('course_catalogue') }}"><strong>Course Catalogue</strong><span class="muted">Search courses and manage enrolment.</span></a>
+    <a class="link-card" href="{{ url_for('courses') }}"><strong>My Courses</strong><span class="muted">Open materials, assignments, and announcements.</span></a>
+</section>
+
+<section class="summary-grid">
+    <div class="panel">
+        <h2>Recent Announcements</h2>
+        {% if announcements %}
+            <ul class="clean-list">
+                {% for announcement in announcements %}
+                    <li><strong>{{ announcement.course.code }}: {{ announcement.title }}</strong><span class="muted">{{ announcement.posted_at.strftime("%d %b %Y %H:%M") }}</span></li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            {{ empty_state("No announcements yet", "Updates from your enrolled courses will appear here.") }}
+        {% endif %}
+    </div>
+    <div class="panel">
+        <h2>Upcoming Assignments</h2>
+        {% if assignments %}
+            <ul class="clean-list">
+                {% for assignment in assignments %}
+                    <li><a href="{{ url_for('submit_assignment', assignment_id=assignment.id) }}"><strong>{{ assignment.course.code }}: {{ assignment.title }}</strong></a><span class="muted">Due {{ assignment.deadline.strftime("%d %b %Y %H:%M") }}</span></li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            {{ empty_state("No upcoming assignments", "Assigned work with active deadlines will appear here.") }}
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

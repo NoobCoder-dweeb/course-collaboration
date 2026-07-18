@@ -1,0 +1,12 @@
+{% macro empty_state(title, body, action_label=None, action_href=None) -%}
+    <div class="empty-state">
+        <div class="empty-state__mark" aria-hidden="true"></div>
+        <div>
+            <strong>{{ title }}</strong>
+            <p>{{ body }}</p>
+            {% if action_label and action_href %}
+                <a class="text-link" href="{{ action_href }}">{{ action_label }}</a>
+            {% endif %}
+        </div>
+    </div>
+{%- endmacro %}

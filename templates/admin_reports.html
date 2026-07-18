@@ -1,0 +1,21 @@
+{% extends "_base.html" %}
+
+{% block title %}Reports{% endblock %}
+
+{% block content %}
+<header class="page-header"><div><p class="eyebrow">Admin</p><h1>Browser Reports</h1></div></header>
+<section class="report-stack">
+    <div class="panel">
+        <h2>Enrollment</h2>
+        <div class="table-wrap report-table"><table><thead><tr><th>Course</th><th>Students</th></tr></thead><tbody>{% for course, count in enrollment %}<tr><td>{{ course.code }} - {{ course.title }}</td><td>{{ count }}</td></tr>{% endfor %}</tbody></table></div>
+    </div>
+    <div class="panel">
+        <h2>Submissions</h2>
+        <div class="table-wrap report-table"><table><thead><tr><th>Assignment</th><th>Submitted Attempts</th><th>Missing Students</th></tr></thead><tbody>{% for assignment, count in submission_counts %}<tr><td>{{ assignment.course.code }} - {{ assignment.title }}</td><td>{{ count }}</td><td>{{ assignment.course.students|length - assignment.submissions|map(attribute='student_id')|unique|list|length }}</td></tr>{% endfor %}</tbody></table></div>
+    </div>
+    <div class="panel">
+        <h2>Participation</h2>
+        <div class="table-wrap report-table"><table><thead><tr><th>Course</th><th>Students</th><th>Materials</th><th>Announcements</th></tr></thead><tbody>{% for course, students, materials, announcements in participation %}<tr><td>{{ course.code }}</td><td>{{ students }}</td><td>{{ materials }}</td><td>{{ announcements }}</td></tr>{% endfor %}</tbody></table></div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends "_base.html" %}
+{% from "_empty_state.html" import empty_state %}
+
+{% block title %}{{ course.code }}{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div><p class="eyebrow">{{ course.code }}</p><h1>{{ course.title }}</h1><p class="muted">{{ course.description }}</p></div>
+</header>
+
+<section class="summary-grid">
+    <div class="panel">
+        <h2>Announcements</h2>
+        {% for announcement in announcements %}
+            <article class="item"><strong>{{ announcement.title }}</strong><p>{{ announcement.body }}</p><span class="muted">{{ announcement.posted_at.strftime("%d %b %Y %H:%M") }}</span></article>
+        {% else %}{{ empty_state("No announcements yet", "Course updates from your lecturer will appear here.") }}{% endfor %}
+    </div>
+    <div class="panel">
+        <h2>Materials</h2>
+        {% for material in materials %}
+            <article class="item"><strong>{{ material.title }}</strong><p>{{ material.description }}</p>{% if material.file_path %}<a href="{{ url_for('download_file', stored_path=material.file_path) }}">Download</a>{% endif %}</article>
+        {% else %}{{ empty_state("No materials yet", "Shared files and learning resources will appear here.") }}{% endfor %}
+    </div>
+    <div class="panel">
+        <h2>Assignments</h2>
+        {% for assignment in assignments %}
+            <article class="item"><a href="{{ url_for('submit_assignment', assignment_id=assignment.id) }}"><strong>{{ assignment.title }}</strong></a><span class="muted">Due {{ assignment.deadline.strftime("%d %b %Y %H:%M") }}</span></article>
+        {% else %}{{ empty_state("No assignments yet", "Assigned work and deadlines will appear here.") }}{% endfor %}
+    </div>
+</section>
+{% endblock %}

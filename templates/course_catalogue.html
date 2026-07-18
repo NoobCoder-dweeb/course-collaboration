@@ -1,0 +1,38 @@
+{% extends "_base.html" %}
+
+{% block title %}Course Catalogue{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <p class="eyebrow">Catalogue</p>
+        <h1>Approved Courses</h1>
+    </div>
+    <a class="button" href="{{ url_for('enroll_courses') }}">Enroll Courses</a>
+</header>
+
+<section class="panel">
+    <form class="inline-form" method="get">
+        <label>Search <input type="search" name="q" value="{{ q }}" placeholder="Course code or title…" autocomplete="off"></label>
+        <button type="submit">Search</button>
+    </form>
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Course</th><th>Status</th></tr></thead>
+            <tbody>
+            {% for course in courses %}
+                <tr>
+                    <td><strong>{{ course.code }}</strong><span class="muted block">{{ course.title }}</span></td>
+                    <td>
+                        {% if course.id in current_ids %}<span class="badge active">Enrolled</span>
+                        {% else %}<span class="badge">Available</span>{% endif %}
+                    </td>
+                </tr>
+            {% else %}
+                <tr><td colspan="2" class="muted">No approved courses match your search.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

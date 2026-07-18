@@ -1,0 +1,21 @@
+{% extends "_base.html" %}
+
+{% block title %}Submissions{% endblock %}
+
+{% block content %}
+<header class="page-header"><div><p class="eyebrow">{{ assignment.course.code }}</p><h1>{{ assignment.title }} Submissions</h1></div></header>
+<section class="panel">
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Student</th><th>Attempt</th><th>Submitted</th><th>Status</th><th>File</th></tr></thead>
+            <tbody>
+            {% for submission in submissions %}
+                <tr><td>{{ submission.student.name }}</td><td>{{ submission.attempt_number }}</td><td>{{ submission.submitted_at.strftime("%d %b %Y %H:%M") }}</td><td>{{ submission.status }}</td><td><a href="{{ url_for('download_file', stored_path=submission.file_path) }}">Download</a></td></tr>
+            {% else %}
+                <tr><td colspan="5" class="muted">No submissions yet.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

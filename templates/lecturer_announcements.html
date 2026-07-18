@@ -1,0 +1,24 @@
+{% extends "_base.html" %}
+{% from "_empty_state.html" import empty_state %}
+
+{% block title %}Announcements{% endblock %}
+
+{% block content %}
+<header class="page-header"><div><p class="eyebrow">{{ course.code }}</p><h1>Announcements</h1></div></header>
+<section class="summary-grid">
+    <div class="panel">
+        <h2>Post Announcement</h2>
+        <form class="form-stack" method="post">
+            <label>Title <input type="text" name="title" autocomplete="off" required></label>
+            <label>Message <textarea name="body" autocomplete="off" required></textarea></label>
+            <button type="submit">Post Announcement</button>
+        </form>
+    </div>
+    <div class="panel">
+        <h2>Course Announcements</h2>
+        {% for announcement in announcements %}
+            <article class="item"><strong>{{ announcement.title }}</strong><span class="muted">{{ announcement.posted_at.strftime("%d %b %Y %H:%M") }}</span><p>{{ announcement.body }}</p><div class="button-row compact"><a class="button secondary" href="{{ url_for('edit_announcement', announcement_id=announcement.id) }}">Edit</a><form method="post" action="{{ url_for('delete_announcement', announcement_id=announcement.id) }}"><button class="danger" type="submit">Delete</button></form></div></article>
+        {% else %}{{ empty_state("No announcements yet", "Post the first course update using the form.") }}{% endfor %}
+    </div>
+</section>
+{% endblock %}

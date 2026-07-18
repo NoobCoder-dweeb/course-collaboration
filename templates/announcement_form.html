@@ -1,0 +1,15 @@
+{% extends "_base.html" %}
+
+{% block title %}Edit Announcement{% endblock %}
+
+{% block content %}
+<header class="page-header"><div><p class="eyebrow">{{ course.code }}</p><h1>Edit Announcement</h1></div></header>
+<section class="panel narrow">
+    <form class="form-stack" method="post">
+        <label>Title <input type="text" name="title" value="{{ announcement.title }}" autocomplete="off" required></label>
+        <label>Message <textarea name="body" autocomplete="off" required>{{ announcement.body }}</textarea></label>
+        <button type="submit">Update Announcement</button>
+        <a class="button secondary" href="{{ url_for('lecturer_announcements', course_id=course.id) }}">Back to Announcements</a>
+    </form>
+</section>
+{% endblock %}

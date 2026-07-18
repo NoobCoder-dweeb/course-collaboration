@@ -1,0 +1,27 @@
+{% extends "_base.html" %}
+{% from "_empty_state.html" import empty_state %}
+
+{% block title %}Course Approvals{% endblock %}
+
+{% block content %}
+<header class="page-header"><div><p class="eyebrow">Admin</p><h1>Course Approvals</h1></div></header>
+<section class="panel">
+    {% for proposal in proposals %}
+        <article class="item">
+            <strong>{{ proposal.code }} - {{ proposal.title }}</strong>
+            <span class="badge {{ 'pending' if proposal.status == 'pending' else '' }}">{{ proposal.status|title }}</span>
+            <p>{{ proposal.description }}</p>
+            <p class="muted">Proposed by {{ proposal.proposed_by.name if proposal.proposed_by else "Unknown" }}</p>
+            {% if proposal.status == "pending" %}
+                <form class="button-row compact" method="post">
+                    <input type="hidden" name="course_id" value="{{ proposal.id }}">
+                    <button type="submit" name="action" value="approve">Approve</button>
+                    <button class="danger" type="submit" name="action" value="reject">Reject</button>
+                </form>
+            {% endif %}
+        </article>
+    {% else %}
+        {{ empty_state("No proposals to review", "Pending and rejected course proposals will appear here.") }}
+    {% endfor %}
+</section>
+{% endblock %}

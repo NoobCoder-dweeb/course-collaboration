@@ -1,0 +1,19 @@
+{% extends "_base.html" %}
+{% from "_empty_state.html" import empty_state %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<section class="auth-panel">
+    <p class="eyebrow">Course Collaboration</p>
+    <h1>Login</h1>
+    <p class="muted">Access your course workspace.</p>
+    {% if error %}<p class="alert error" role="alert">{{ error }}</p>{% endif %}
+    <form class="form-stack" method="post">
+        <label>Email <input type="email" name="email" autocomplete="email" spellcheck="false" required></label>
+        <label>Password <input type="password" name="password" autocomplete="current-password" required></label>
+        <button type="submit">Login</button>
+    </form>
+    <p class="form-note">Students can <a href="{{ url_for('signup') }}">create an account</a>. Lecturers use accounts created by admin.</p>
+</section>
+{% endblock %}

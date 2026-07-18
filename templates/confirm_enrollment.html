@@ -1,0 +1,28 @@
+{% extends "_base.html" %}
+
+{% block title %}Confirm Enrollment{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <p class="eyebrow">Enrollment</p>
+        <h1>Confirm Enrollment</h1>
+    </div>
+</header>
+
+<section class="panel">
+    {% set add_courses = courses | selectattr("id", "in", pending_add_ids) | list %}
+    <h2>Courses to Add</h2>
+    {% if add_courses %}
+        <ul class="summary-list">{% for course in add_courses %}<li>{{ course.code }} - {{ course.title }}</li>{% endfor %}</ul>
+    {% else %}
+        <p class="muted">No new courses selected.</p>
+    {% endif %}
+    <form method="post" action="{{ url_for('confirm_enrollment') }}">
+        <div class="button-row">
+            <button type="submit">Confirm Enrollment</button>
+            <a class="button secondary" href="{{ url_for('enroll_courses') }}">Back</a>
+        </div>
+    </form>
+</section>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends "_base.html" %}
+{% from "_empty_state.html" import empty_state %}
+
+{% block title %}Lecturer Dashboard{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <p class="eyebrow">Lecturer</p>
+        <h1>{{ lecturer.name }} Dashboard</h1>
+    </div>
+    <a class="button" href="{{ url_for('course_proposals') }}">Course Proposals</a>
+</header>
+
+<section class="panel">
+    <h2>Assigned Courses</h2>
+    {% if courses %}
+        <div class="link-grid">
+            {% for course in courses %}
+                <a class="link-card" href="{{ url_for('lecturer_course_detail', course_id=course.id) }}">
+                    <strong>{{ course.code }}</strong>
+                    <span class="muted">{{ course.title }}</span>
+                </a>
+            {% endfor %}
+        </div>
+    {% else %}
+        {{ empty_state("No assigned courses", "Approved courses assigned to you will appear here.") }}
+    {% endif %}
+</section>
+{% endblock %}
