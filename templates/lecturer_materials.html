@@ -15,6 +15,7 @@
             <label>Topic <input type="text" name="topic" placeholder="e.g. Database design" autocomplete="off"></label>
             <label>Type <input type="text" name="material_type" placeholder="Slides, notes, lab" autocomplete="off"></label>
             <label class="checkbox-label"><input type="checkbox" name="discussion_enabled" value="1"> Enable student discussion</label>
+            <label class="checkbox-label"><input type="checkbox" name="is_priority" value="1"> Priority material (members only)</label>
             <label class="file-upload">File <input type="file" name="material_file" accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg,.zip"><span>Supported files: PDF, DOC, DOCX, TXT, PNG, JPG, JPEG, ZIP.</span></label>
             <button type="submit">Save Material</button>
         </form>
@@ -25,7 +26,7 @@
         {% for material in materials %}
             {% set group = ('Week ' ~ material.week_number if material.week_number else 'General') ~ (' · ' ~ material.topic if material.topic else '') %}
             {% if group != ns.group %}<h3 class="material-group">{{ group }}</h3>{% set ns.group = group %}{% endif %}
-            <article class="item"><a href="{{ url_for('material_detail', material_id=material.id) }}"><strong>{{ material.title }}</strong></a><span class="muted">{{ material.material_type or "Material" }} · {{ material.uploaded_at.strftime("%d %b %Y") }} · {{ "Discussion open" if material.discussion_enabled else "No discussion" }}</span><p>{{ material.description }}</p><div class="button-row compact">{% if material.file_path %}<a class="button secondary" href="{{ url_for('download_file', stored_path=material.file_path) }}">Download</a>{% endif %}<a class="button secondary" href="{{ url_for('material_interactions', material_id=material.id) }}">Interactions ({{ material.interactions|length }})</a><a class="button secondary" href="{{ url_for('edit_material', material_id=material.id) }}">Edit</a><form method="post" action="{{ url_for('delete_material', material_id=material.id) }}"><button class="danger" type="submit">Delete</button></form></div></article>
+            <article class="item"><a href="{{ url_for('material_detail', material_id=material.id) }}"><strong>{{ material.title }}</strong></a>{% if material.is_priority %}<span class="badge pending">Priority · Members only</span>{% endif %}<span class="muted block">{{ material.material_type or "Material" }} · {{ material.uploaded_at.strftime("%d %b %Y") }} · {{ "Discussion open" if material.discussion_enabled else "No discussion" }}</span><p>{{ material.description }}</p><div class="button-row compact">{% if material.file_path %}<a class="button secondary" href="{{ url_for('download_file', stored_path=material.file_path) }}">Download</a>{% endif %}<a class="button secondary" href="{{ url_for('material_interactions', material_id=material.id) }}">Interactions ({{ material.interactions|length }})</a><a class="button secondary" href="{{ url_for('edit_material', material_id=material.id) }}">Edit</a><form method="post" action="{{ url_for('delete_material', material_id=material.id) }}"><button class="danger" type="submit">Delete</button></form></div></article>
         {% else %}{{ empty_state("No materials yet", "Add the first resource for this course using the form.") }}{% endfor %}
     </div>
 </section>

@@ -5,7 +5,7 @@
 
 {% block content %}
 <header class="page-header">
-    <div><p class="eyebrow">{{ material.course.code }}{% if material.week_number %} · Week {{ material.week_number }}{% endif %}</p><h1>{{ material.title }}</h1><p class="muted">{{ material.topic or material.material_type or "Course material" }}</p></div>
+    <div><p class="eyebrow">{{ material.course.code }}{% if material.week_number %} · Week {{ material.week_number }}{% endif %}</p><h1>{{ material.title }}</h1>{% if material.is_priority %}<span class="badge pending">Priority · Members only</span>{% endif %}<p class="muted">{{ material.topic or material.material_type or "Course material" }}</p></div>
     {% if current_user_type == "lecturer" %}<a class="button secondary" href="{{ url_for('material_interactions', material_id=material.id) }}">View interactions</a>{% endif %}
 </header>
 <section class="summary-grid">

@@ -146,6 +146,7 @@ def material_form_fields(material: CourseMaterial) -> None:
     material.week_number = int(week_value) if week_value.isdigit() and 1 <= int(week_value) <= 52 else None
     material.topic = request.form.get("topic", "").strip() or None
     material.discussion_enabled = request.form.get("discussion_enabled") == "1"
+    material.is_priority = request.form.get("is_priority") == "1"
 
 
 def ensure_schema_upgrades() -> None:
@@ -160,6 +161,7 @@ def ensure_schema_upgrades() -> None:
             "week_number": "ALTER TABLE course_material ADD COLUMN week_number INTEGER",
             "topic": "ALTER TABLE course_material ADD COLUMN topic VARCHAR(128)",
             "discussion_enabled": "ALTER TABLE course_material ADD COLUMN discussion_enabled BOOLEAN NOT NULL DEFAULT 0",
+            "is_priority": "ALTER TABLE course_material ADD COLUMN is_priority BOOLEAN NOT NULL DEFAULT 0",
         },
         "assignment_submission": {
             "grade": "ALTER TABLE assignment_submission ADD COLUMN grade FLOAT",
@@ -587,6 +589,9 @@ def create_app(config: dict | None = None) -> Flask:
             student = current_student()
             if material.course not in student.courses:
                 abort(403)
+            if material.is_priority and not student.is_member:
+                flash("This priority material is available to members only.", "error")
+                return redirect(url_for("course_detail", course_id=material.course_id))
             record_material_interaction(material, student)
             if request.method == "POST":
                 if not material.discussion_enabled:
@@ -614,10 +619,14 @@ def create_app(config: dict | None = None) -> Flask:
         lecturer_course(material.course_id)
         interactions = MaterialInteraction.query.filter_by(material_id=material.id).order_by(MaterialInteraction.last_interacted_at.desc()).all()
         interacted_ids = {interaction.student_id for interaction in interactions}
-        not_interacted = [student for student in material.course.students if student.id not in interacted_ids]
+        eligible_students = [student for student in material.course.students if not material.is_priority or student.is_member]
+        not_interacted = [student for student in eligible_students if student.id not in interacted_ids]
+        ineligible_students = [student for student in material.course.students if material.is_priority and not student.is_member]
         return render_template(
             "material_interactions.html", material=material, interactions=interactions,
             not_interacted=sorted(not_interacted, key=lambda student: student.name.lower()),
+            eligible_count=len(eligible_students),
+            ineligible_students=sorted(ineligible_students, key=lambda student: student.name.lower()),
         )
 
     @app.route("/lecturer/course-proposals", methods=["GET", "POST"])
@@ -794,6 +803,8 @@ def create_app(config: dict | None = None) -> Flask:
         submission = AssignmentSubmission.query.filter_by(file_path=stored_path).first()
         if material:
             if current_user_type() == "student" and material.course not in current_student().courses:
+                abort(403)
+            if current_user_type() == "student" and material.is_priority and not current_student().is_member:
                 abort(403)
             if current_user_type() == "lecturer" and material.course.lecturer_id != current_lecturer().id:
                 abort(403)

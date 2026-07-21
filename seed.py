@@ -56,7 +56,7 @@ def main() -> None:
 
         material_path = sample_file("uploads/materials/week1_notes.txt", "Week 1 notes for the demo course.")
         material_notes = CourseMaterial(course=courses["XBAU1002"], uploaded_by=lecturer, title="Week 1 Notes", description="Introductory notes.", material_type="Notes", week_number=1, topic="Linked structures", discussion_enabled=True, file_path=material_path)
-        material_flask = CourseMaterial(course=courses["XBAU2002"], uploaded_by=lecturer, title="Flask Setup", description="Starter setup checklist.", material_type="Lab", week_number=1, topic="Environment setup", discussion_enabled=True, file_path=None)
+        material_flask = CourseMaterial(course=courses["XBAU2002"], uploaded_by=lecturer, title="Flask Setup", description="Starter setup checklist.", material_type="Lab", week_number=1, topic="Environment setup", discussion_enabled=True, is_priority=True, file_path=None)
         db.session.add_all([material_notes, material_flask])
 
         now = datetime.now()

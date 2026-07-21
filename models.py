@@ -79,6 +79,7 @@ class CourseMaterial(db.Model):
     week_number = db.Column(db.Integer, nullable=True)
     topic = db.Column(db.String(128), nullable=True)
     discussion_enabled = db.Column(db.Boolean, nullable=False, default=False)
+    is_priority = db.Column(db.Boolean, nullable=False, default=False)
     file_path = db.Column(db.String(512), nullable=True)
     uploaded_at = db.Column(db.DateTime, nullable=False, default=datetime.now)
 

@@ -21,7 +21,13 @@
         {% for material in materials %}
             {% set group = ('Week ' ~ material.week_number if material.week_number else 'General') ~ (' · ' ~ material.topic if material.topic else '') %}
             {% if group != ns.group %}<h3 class="material-group">{{ group }}</h3>{% set ns.group = group %}{% endif %}
-            <article class="item"><a href="{{ url_for('material_detail', material_id=material.id) }}"><strong>{{ material.title }}</strong></a><span class="muted">{{ material.material_type or 'Material' }}{% if material.discussion_enabled %} · Discussion open{% endif %}</span><p>{{ material.description }}</p><div class="button-row compact"><a class="button secondary" href="{{ url_for('material_detail', material_id=material.id) }}">Open</a>{% if material.file_path %}<a class="button secondary" href="{{ url_for('download_file', stored_path=material.file_path) }}">Download</a>{% endif %}</div></article>
+            <article class="item">
+                {% set locked = material.is_priority and not current_user.is_member %}
+                {% if locked %}<strong>{{ material.title }}</strong>{% else %}<a href="{{ url_for('material_detail', material_id=material.id) }}"><strong>{{ material.title }}</strong></a>{% endif %}
+                {% if material.is_priority %}<span class="badge pending">Priority · Members only</span>{% endif %}
+                <span class="muted block">{{ material.material_type or 'Material' }}{% if material.discussion_enabled %} · Discussion open{% endif %}</span><p>{{ material.description }}</p>
+                {% if locked %}<p class="form-note">Become a member to access this priority material.</p>{% else %}<div class="button-row compact"><a class="button secondary" href="{{ url_for('material_detail', material_id=material.id) }}">Open</a>{% if material.file_path %}<a class="button secondary" href="{{ url_for('download_file', stored_path=material.file_path) }}">Download</a>{% endif %}</div>{% endif %}
+            </article>
         {% else %}{{ empty_state("No materials yet", "Shared files and learning resources will appear here.") }}{% endfor %}
     </div>
     <div class="panel">
