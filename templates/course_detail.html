@@ -17,8 +17,11 @@
     </div>
     <div class="panel">
         <h2>Materials</h2>
+        {% set ns = namespace(group='') %}
         {% for material in materials %}
-            <article class="item"><strong>{{ material.title }}</strong><p>{{ material.description }}</p>{% if material.file_path %}<a href="{{ url_for('download_file', stored_path=material.file_path) }}">Download</a>{% endif %}</article>
+            {% set group = ('Week ' ~ material.week_number if material.week_number else 'General') ~ (' · ' ~ material.topic if material.topic else '') %}
+            {% if group != ns.group %}<h3 class="material-group">{{ group }}</h3>{% set ns.group = group %}{% endif %}
+            <article class="item"><a href="{{ url_for('material_detail', material_id=material.id) }}"><strong>{{ material.title }}</strong></a><span class="muted">{{ material.material_type or 'Material' }}{% if material.discussion_enabled %} · Discussion open{% endif %}</span><p>{{ material.description }}</p><div class="button-row compact"><a class="button secondary" href="{{ url_for('material_detail', material_id=material.id) }}">Open</a>{% if material.file_path %}<a class="button secondary" href="{{ url_for('download_file', stored_path=material.file_path) }}">Download</a>{% endif %}</div></article>
         {% else %}{{ empty_state("No materials yet", "Shared files and learning resources will appear here.") }}{% endfor %}
     </div>
     <div class="panel">

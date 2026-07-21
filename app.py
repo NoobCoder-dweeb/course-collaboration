@@ -4,10 +4,13 @@ from functools import wraps
 from pathlib import Path
 
 from flask import Flask, abort, flash, redirect, render_template, request, send_from_directory, session, url_for
-from sqlalchemy import func, or_
+from sqlalchemy import func, inspect, or_, text
 from werkzeug.utils import secure_filename
 
-from models import Admin, Announcement, Assignment, AssignmentSubmission, Course, CourseMaterial, Lecturer, Student, db
+from models import (
+    Admin, Announcement, Assignment, AssignmentSubmission, Course, CourseMaterial,
+    Lecturer, MaterialComment, MaterialInteraction, Student, db,
+)
 
 
 ALLOWED_EXTENSIONS = {"pdf", "doc", "docx", "txt", "png", "jpg", "jpeg", "zip"}
@@ -129,6 +132,50 @@ def parse_deadline(value: str) -> datetime | None:
         return None
 
 
+def record_material_interaction(material: CourseMaterial, student: Student) -> None:
+    interaction = MaterialInteraction.query.filter_by(material_id=material.id, student_id=student.id).first()
+    if interaction:
+        interaction.last_interacted_at = datetime.now()
+        interaction.interaction_count += 1
+    else:
+        db.session.add(MaterialInteraction(material=material, student=student))
+
+
+def material_form_fields(material: CourseMaterial) -> None:
+    week_value = request.form.get("week_number", "").strip()
+    material.week_number = int(week_value) if week_value.isdigit() and 1 <= int(week_value) <= 52 else None
+    material.topic = request.form.get("topic", "").strip() or None
+    material.discussion_enabled = request.form.get("discussion_enabled") == "1"
+
+
+def ensure_schema_upgrades() -> None:
+    """Add columns introduced after the initial SQLite prototype without erasing data."""
+    inspector = inspect(db.engine)
+    upgrades = {
+        "student": {
+            "skills": "ALTER TABLE student ADD COLUMN skills TEXT",
+            "collaboration_mode": "ALTER TABLE student ADD COLUMN collaboration_mode VARCHAR(32)",
+        },
+        "course_material": {
+            "week_number": "ALTER TABLE course_material ADD COLUMN week_number INTEGER",
+            "topic": "ALTER TABLE course_material ADD COLUMN topic VARCHAR(128)",
+            "discussion_enabled": "ALTER TABLE course_material ADD COLUMN discussion_enabled BOOLEAN NOT NULL DEFAULT 0",
+        },
+        "assignment_submission": {
+            "grade": "ALTER TABLE assignment_submission ADD COLUMN grade FLOAT",
+            "feedback": "ALTER TABLE assignment_submission ADD COLUMN feedback TEXT",
+            "graded_at": "ALTER TABLE assignment_submission ADD COLUMN graded_at DATETIME",
+            "graded_by_lecturer_id": "ALTER TABLE assignment_submission ADD COLUMN graded_by_lecturer_id INTEGER REFERENCES lecturer(id)",
+        },
+    }
+    for table_name, columns in upgrades.items():
+        existing = {column["name"] for column in inspector.get_columns(table_name)}
+        for column_name, statement in columns.items():
+            if column_name not in existing:
+                db.session.execute(text(statement))
+    db.session.commit()
+
+
 def create_app(config: dict | None = None) -> Flask:
     app = Flask(__name__)
     app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-key")
@@ -209,6 +256,20 @@ def create_app(config: dict | None = None) -> Flask:
             return render_template("lecturer_dashboard.html", lecturer=lecturer, courses=lecturer.courses)
         return redirect(url_for("admin_dashboard"))
 
+    @app.route("/student/profile", methods=["GET", "POST"])
+    @login_required("student")
+    def student_profile():
+        student = current_student()
+        if request.method == "POST":
+            student.skills = request.form.get("skills", "").strip() or None
+            mode = request.form.get("collaboration_mode", "").strip()
+            allowed_modes = {"Online", "In person", "Hybrid", "Flexible"}
+            student.collaboration_mode = mode if mode in allowed_modes else None
+            db.session.commit()
+            flash("Your collaboration profile was updated.", "success")
+            return redirect(url_for("student_profile"))
+        return render_template("student_profile.html", student=student)
+
     @app.route("/courses")
     @login_required()
     def courses():
@@ -264,7 +325,7 @@ def create_app(config: dict | None = None) -> Flask:
     @login_required("student")
     def course_detail(course_id):
         course = enrolled_course(course_id)
-        materials = CourseMaterial.query.filter_by(course_id=course.id).order_by(CourseMaterial.uploaded_at.desc()).all()
+        materials = CourseMaterial.query.filter_by(course_id=course.id).order_by(CourseMaterial.week_number.is_(None), CourseMaterial.week_number, CourseMaterial.topic, CourseMaterial.uploaded_at).all()
         assignments = Assignment.query.filter_by(course_id=course.id).order_by(Assignment.deadline).all()
         announcements = Announcement.query.filter_by(course_id=course.id).order_by(Announcement.posted_at.desc()).all()
         return render_template("course_detail.html", course=course, materials=materials, assignments=assignments, announcements=announcements)
@@ -350,11 +411,12 @@ def create_app(config: dict | None = None) -> Flask:
                         file_path=saved_path,
                         uploaded_by=current_lecturer(),
                     )
+                    material_form_fields(material)
                     db.session.add(material)
                     db.session.commit()
                     flash("Material saved.", "success")
                     return redirect(url_for("lecturer_materials", course_id=course.id))
-        materials = CourseMaterial.query.filter_by(course_id=course.id).order_by(CourseMaterial.uploaded_at.desc()).all()
+        materials = CourseMaterial.query.filter_by(course_id=course.id).order_by(CourseMaterial.week_number.is_(None), CourseMaterial.week_number, CourseMaterial.topic, CourseMaterial.uploaded_at).all()
         return render_template("lecturer_materials.html", course=course, materials=materials)
 
     @app.route("/lecturer/materials/<int:material_id>/edit", methods=["GET", "POST"])
@@ -370,6 +432,7 @@ def create_app(config: dict | None = None) -> Flask:
                 material.title = title
                 material.description = request.form.get("description", "").strip()
                 material.material_type = request.form.get("material_type", "").strip()
+                material_form_fields(material)
                 saved_path = save_upload(request.files.get("material_file"), "materials")
                 if saved_path == "":
                     flash("Invalid file type.", "error")
@@ -441,11 +504,31 @@ def create_app(config: dict | None = None) -> Flask:
         flash("Assignment deleted.", "success")
         return redirect(url_for("lecturer_assignments", course_id=course_id))
 
-    @app.route("/lecturer/assignments/<int:assignment_id>/submissions")
+    @app.route("/lecturer/assignments/<int:assignment_id>/submissions", methods=["GET", "POST"])
     @login_required("lecturer")
     def lecturer_submissions(assignment_id):
         assignment = db.session.get(Assignment, assignment_id) or abort(404)
         lecturer_course(assignment.course_id)
+        if request.method == "POST":
+            submission = db.session.get(AssignmentSubmission, request.form.get("submission_id", type=int)) or abort(404)
+            if submission.assignment_id != assignment.id:
+                abort(403)
+            grade_value = request.form.get("grade", "").strip()
+            try:
+                grade = float(grade_value)
+            except ValueError:
+                grade = -1
+            if not 0 <= grade <= 100:
+                flash("Grade must be a number from 0 to 100.", "error")
+            else:
+                submission.grade = grade
+                submission.feedback = request.form.get("feedback", "").strip() or None
+                submission.graded_at = datetime.now()
+                submission.graded_by = current_lecturer()
+                submission.status = "graded"
+                db.session.commit()
+                flash(f"Grade saved for {submission.student.name}.", "success")
+            return redirect(url_for("lecturer_submissions", assignment_id=assignment.id))
         submissions = AssignmentSubmission.query.filter_by(assignment_id=assignment.id).order_by(AssignmentSubmission.student_id, AssignmentSubmission.attempt_number).all()
         return render_template("lecturer_submissions.html", assignment=assignment, submissions=submissions)
 
@@ -495,6 +578,47 @@ def create_app(config: dict | None = None) -> Flask:
         db.session.commit()
         flash("Announcement deleted.", "success")
         return redirect(url_for("lecturer_announcements", course_id=course_id))
+
+    @app.route("/materials/<int:material_id>", methods=["GET", "POST"])
+    @login_required()
+    def material_detail(material_id):
+        material = db.session.get(CourseMaterial, material_id) or abort(404)
+        if current_user_type() == "student":
+            student = current_student()
+            if material.course not in student.courses:
+                abort(403)
+            record_material_interaction(material, student)
+            if request.method == "POST":
+                if not material.discussion_enabled:
+                    abort(403)
+                body = request.form.get("body", "").strip()
+                if not body:
+                    flash("Comment cannot be empty.", "error")
+                elif len(body) > 2000:
+                    flash("Comment must be 2,000 characters or fewer.", "error")
+                else:
+                    db.session.add(MaterialComment(material=material, student=student, body=body))
+                    flash("Your comment was posted.", "success")
+            db.session.commit()
+        elif current_user_type() == "lecturer":
+            lecturer_course(material.course_id)
+            if request.method == "POST":
+                abort(403)
+        comments = MaterialComment.query.filter_by(material_id=material.id).order_by(MaterialComment.posted_at).all()
+        return render_template("material_detail.html", material=material, comments=comments)
+
+    @app.route("/lecturer/materials/<int:material_id>/interactions")
+    @login_required("lecturer")
+    def material_interactions(material_id):
+        material = db.session.get(CourseMaterial, material_id) or abort(404)
+        lecturer_course(material.course_id)
+        interactions = MaterialInteraction.query.filter_by(material_id=material.id).order_by(MaterialInteraction.last_interacted_at.desc()).all()
+        interacted_ids = {interaction.student_id for interaction in interactions}
+        not_interacted = [student for student in material.course.students if student.id not in interacted_ids]
+        return render_template(
+            "material_interactions.html", material=material, interactions=interactions,
+            not_interacted=sorted(not_interacted, key=lambda student: student.name.lower()),
+        )
 
     @app.route("/lecturer/course-proposals", methods=["GET", "POST"])
     @login_required("lecturer")
@@ -675,6 +799,9 @@ def create_app(config: dict | None = None) -> Flask:
                 abort(403)
             if current_user_type() not in {"student", "lecturer", "admin"}:
                 abort(403)
+            if current_user_type() == "student":
+                record_material_interaction(material, current_student())
+                db.session.commit()
         elif submission:
             if current_user_type() == "student" and submission.student_id != current_student().id:
                 abort(403)
@@ -690,6 +817,10 @@ def create_app(config: dict | None = None) -> Flask:
     def logout():
         session.clear()
         return redirect(url_for("login"))
+
+    with app.app_context():
+        db.create_all()
+        ensure_schema_upgrades()
 
     return app
 

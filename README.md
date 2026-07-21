@@ -1,6 +1,6 @@
 # Course Collaboration
 
-A Flask/Jinja2 course collaboration platform for XBAU2114N. It supports student enrolment, assignment submission, lecturer course management, materials, announcements, course proposals, admin accounts, membership management, approvals, and reports.
+A Flask/Jinja2 course collaboration platform for XBAU2114N. It supports student collaboration profiles, enrolment, assignment submission and grading, weekly/topic-based materials, material discussions and interaction tracking, announcements, lecturer course management, course proposals, admin accounts, membership management, approvals, and reports.
 
 ## Requirements
 

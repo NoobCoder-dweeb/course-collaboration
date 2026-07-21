@@ -1,0 +1,26 @@
+{% extends "_base.html" %}
+
+{% block title %}Collaboration Profile{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div><p class="eyebrow">Student profile</p><h1>How you collaborate</h1><p class="muted">Help classmates find complementary knowledge and a working style that fits.</p></div>
+</header>
+<section class="panel narrow">
+    <form class="form-stack" method="post">
+        <label>Skills and expertise
+            <textarea name="skills" maxlength="1000" placeholder="e.g. Python, computing, civil engineering, CAD, data analysis">{{ student.skills or '' }}</textarea>
+            <span class="form-note">Add subjects, tools, or practical experience, separated by commas.</span>
+        </label>
+        <label>Preferred collaboration mode
+            <select name="collaboration_mode">
+                <option value="">Select a preference</option>
+                {% for mode in ["Online", "In person", "Hybrid", "Flexible"] %}
+                    <option value="{{ mode }}" {% if student.collaboration_mode == mode %}selected{% endif %}>{{ mode }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <button type="submit">Save profile</button>
+    </form>
+</section>
+{% endblock %}

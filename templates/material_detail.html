@@ -1,0 +1,32 @@
+{% extends "_base.html" %}
+{% from "_empty_state.html" import empty_state %}
+
+{% block title %}{{ material.title }}{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div><p class="eyebrow">{{ material.course.code }}{% if material.week_number %} · Week {{ material.week_number }}{% endif %}</p><h1>{{ material.title }}</h1><p class="muted">{{ material.topic or material.material_type or "Course material" }}</p></div>
+    {% if current_user_type == "lecturer" %}<a class="button secondary" href="{{ url_for('material_interactions', material_id=material.id) }}">View interactions</a>{% endif %}
+</header>
+<section class="summary-grid">
+    <div class="panel">
+        <h2>Material</h2>
+        <p>{{ material.description or "No description provided." }}</p>
+        {% if material.file_path %}<div class="button-row"><a class="button" href="{{ url_for('download_file', stored_path=material.file_path) }}">Download material</a></div>{% endif %}
+    </div>
+    <div class="panel">
+        <h2>Discussion</h2>
+        {% if material.discussion_enabled %}
+            {% if current_user_type == "student" %}
+                <form class="form-stack" method="post"><label>Add a comment <textarea name="body" maxlength="2000" required></textarea></label><button type="submit">Post comment</button></form>
+            {% endif %}
+            <div class="discussion-list">
+                {% for comment in comments %}<article class="comment"><div><strong>{{ comment.student.name }}</strong><span class="muted">{{ comment.posted_at.strftime("%d %b %Y %H:%M") }}</span></div><p>{{ comment.body }}</p></article>
+                {% else %}{{ empty_state("No comments yet", "Students can start the conversation here.") }}{% endfor %}
+            </div>
+        {% else %}
+            {{ empty_state("Discussion is closed", "The lecturer has not enabled comments for this material.") }}
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
