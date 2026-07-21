@@ -6,7 +6,7 @@ Course Collaboration Platform for XBAU2114N course
 
 * > Python 3.13
 
-## Test accounts
+## Test account
 
 ```bash
 student@example.com / password123
