@@ -1,0 +1,19 @@
+{% extends "_base.html" %}
+{% from "_empty_state.html" import empty_state %}
+
+{% block title %}Material Interactions{% endblock %}
+
+{% block content %}
+<header class="page-header"><div><p class="eyebrow">{{ material.course.code }}</p><h1>{{ material.title }} interactions</h1><p class="muted">A student is counted after opening, downloading, or commenting on this material.</p></div></header>
+<section class="stats">
+    <div class="stat"><span>{{ "Eligible members" if material.is_priority else "Enrolled" }}</span><strong>{{ eligible_count }}</strong></div>
+    <div class="stat"><span>Interacted</span><strong>{{ interactions|length }}</strong></div>
+    <div class="stat"><span>Not yet interacted</span><strong>{{ not_interacted|length }}</strong></div>
+    {% if material.is_priority %}<div class="stat"><span>Non-members · Not eligible</span><strong>{{ ineligible_students|length }}</strong></div>{% endif %}
+</section>
+<section class="summary-grid">
+    <div class="panel"><h2>Interacted</h2>{% if interactions %}<div class="table-wrap"><table><thead><tr><th>Student</th><th>First interaction</th><th>Latest interaction</th><th>Activity count</th></tr></thead><tbody>{% for interaction in interactions %}<tr><td>{{ interaction.student.name }}</td><td>{{ interaction.first_interacted_at.strftime("%d %b %Y %H:%M") }}</td><td>{{ interaction.last_interacted_at.strftime("%d %b %Y %H:%M") }}</td><td>{{ interaction.interaction_count }}</td></tr>{% endfor %}</tbody></table></div>{% else %}{{ empty_state("No interactions yet", "Student activity will appear here.") }}{% endif %}</div>
+    <div class="panel"><h2>Not yet interacted</h2>{% if not_interacted %}<ul class="clean-list">{% for student in not_interacted %}<li><strong>{{ student.name }}</strong><span class="muted">{{ student.email }}</span></li>{% endfor %}</ul>{% else %}{{ empty_state("Everyone has interacted", "All enrolled students have opened this material.") }}{% endif %}</div>
+    {% if material.is_priority %}<div class="panel"><h2>Not eligible</h2>{% if ineligible_students %}<ul class="clean-list">{% for student in ineligible_students %}<li><strong>{{ student.name }}</strong><span class="muted">Non-member · {{ student.email }}</span></li>{% endfor %}</ul>{% else %}{{ empty_state("All students are eligible", "Every enrolled student is a member.") }}{% endif %}</div>{% endif %}
+</section>
+{% endblock %}

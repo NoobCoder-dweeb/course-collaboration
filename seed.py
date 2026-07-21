@@ -3,7 +3,7 @@ from pathlib import Path
 import shutil
 
 from app import create_app
-from models import Admin, Announcement, Assignment, AssignmentSubmission, Course, CourseMaterial, Lecturer, Student, db
+from models import Admin, Announcement, Assignment, AssignmentSubmission, Course, CourseMaterial, Lecturer, MaterialComment, MaterialInteraction, Student, db
 
 
 TEST_PASSWORD = "password123"
@@ -41,8 +41,8 @@ def main() -> None:
         admin = password_user(Admin, "Fixed Admin", "admin@example.com")
         lecturer = password_user(Lecturer, "Test Lecturer", "lecturer@example.com", department="Computer Science")
         lecturer_two = password_user(Lecturer, "Second Lecturer", "lecturer2@example.com", department="Information Systems")
-        student = password_user(Student, "Test Student", "student@example.com", enrollment_year=2026, is_member=False)
-        member = password_user(Student, "Member Student", "member@example.com", enrollment_year=2026, is_member=True)
+        student = password_user(Student, "Test Student", "student@example.com", enrollment_year=2026, is_member=False, skills="Python, computing, UI design", collaboration_mode="Offline", availability_start_day=0, availability_end_day=4, availability_start_time="09:00", availability_end_time="17:00")
+        member = password_user(Student, "Member Student", "member@example.com", enrollment_year=2026, is_member=True, skills="Database design, data analysis", collaboration_mode="Online", availability_start_day=1, availability_end_day=5, availability_start_time="10:00", availability_end_time="18:00")
 
         courses = {}
         for code, title, description in COURSES:
@@ -55,12 +55,9 @@ def main() -> None:
         member.courses = [courses["XBAU2001"], courses["XBAU2002"]]
 
         material_path = sample_file("uploads/materials/week1_notes.txt", "Week 1 notes for the demo course.")
-        db.session.add_all(
-            [
-                CourseMaterial(course=courses["XBAU1002"], uploaded_by=lecturer, title="Week 1 Notes", description="Introductory notes.", material_type="Notes", file_path=material_path),
-                CourseMaterial(course=courses["XBAU2002"], uploaded_by=lecturer, title="Flask Setup", description="Starter setup checklist.", material_type="Lab", file_path=None),
-            ]
-        )
+        material_notes = CourseMaterial(course=courses["XBAU1002"], uploaded_by=lecturer, title="Week 1 Notes", description="Introductory notes.", material_type="Notes", week_number=1, topic="Linked structures", discussion_enabled=True, file_path=material_path)
+        material_flask = CourseMaterial(course=courses["XBAU2002"], uploaded_by=lecturer, title="Flask Setup", description="Starter setup checklist.", material_type="Lab", week_number=1, topic="Environment setup", discussion_enabled=True, is_priority=True, file_path=None)
+        db.session.add_all([material_notes, material_flask])
 
         now = datetime.now()
         assignment_a = Assignment(course=courses["XBAU1002"], title="Linked List Lab", requirements="Submit a zip file containing source code and a short README.", deadline=now + timedelta(days=14))
@@ -74,6 +71,9 @@ def main() -> None:
                 Announcement(course=courses["XBAU2002"], lecturer=lecturer, title="Project Brief Available", body="The first project brief is available under materials."),
             ]
         )
+
+        db.session.add(MaterialComment(material=material_notes, student=student, body="Will the lab cover both singly and doubly linked lists?"))
+        db.session.add(MaterialInteraction(material=material_notes, student=student, interaction_count=2))
 
         db.session.flush()
         sub1 = sample_file("uploads/submissions/student_attempt1.txt", "First non-member attempt.")

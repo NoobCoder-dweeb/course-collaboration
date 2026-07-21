@@ -8,6 +8,7 @@
         {% if current_user_type == "student" %}
             <a href="{{ url_for('courses') }}" {% if request.endpoint in ["courses", "course_detail"] %}aria-current="page"{% endif %}>My Courses</a>
             <a href="{{ url_for('course_catalogue') }}" {% if request.endpoint in ["course_catalogue", "enroll_courses", "confirm_enrollment"] %}aria-current="page"{% endif %}>Catalogue</a>
+            <a href="{{ url_for('student_profile') }}" {% if request.endpoint == "student_profile" %}aria-current="page"{% endif %}>Profile</a>
         {% elif current_user_type == "lecturer" %}
             <a href="{{ url_for('courses') }}" {% if request.endpoint in ["courses", "lecturer_course_detail", "lecturer_materials", "lecturer_assignments", "lecturer_announcements", "lecturer_submissions"] %}aria-current="page"{% endif %}>Courses</a>
             <a href="{{ url_for('course_proposals') }}" {% if request.endpoint in ["course_proposals", "edit_course_proposal"] %}aria-current="page"{% endif %}>Proposals</a>

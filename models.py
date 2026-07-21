@@ -76,6 +76,10 @@ class CourseMaterial(db.Model):
     title = db.Column(db.String(256), nullable=False)
     description = db.Column(db.Text, nullable=True)
     material_type = db.Column(db.String(64), nullable=True)
+    week_number = db.Column(db.Integer, nullable=True)
+    topic = db.Column(db.String(128), nullable=True)
+    discussion_enabled = db.Column(db.Boolean, nullable=False, default=False)
+    is_priority = db.Column(db.Boolean, nullable=False, default=False)
     file_path = db.Column(db.String(512), nullable=True)
     uploaded_at = db.Column(db.DateTime, nullable=False, default=datetime.now)
 
@@ -84,6 +88,36 @@ class CourseMaterial(db.Model):
 
     course = db.relationship("Course", back_populates="materials", lazy="joined")
     uploaded_by = db.relationship("Lecturer", lazy="joined")
+    comments = db.relationship("MaterialComment", back_populates="material", lazy="select", cascade="all, delete-orphan")
+    interactions = db.relationship("MaterialInteraction", back_populates="material", lazy="select", cascade="all, delete-orphan")
+
+
+class MaterialComment(db.Model):
+    __tablename__ = "material_comment"
+
+    id = db.Column(db.Integer, primary_key=True)
+    material_id = db.Column(db.Integer, db.ForeignKey("course_material.id"), nullable=False)
+    student_id = db.Column(db.Integer, db.ForeignKey("student.id"), nullable=False)
+    body = db.Column(db.Text, nullable=False)
+    posted_at = db.Column(db.DateTime, nullable=False, default=datetime.now)
+
+    material = db.relationship("CourseMaterial", back_populates="comments", lazy="joined")
+    student = db.relationship("Student", back_populates="material_comments", lazy="joined")
+
+
+class MaterialInteraction(db.Model):
+    __tablename__ = "material_interaction"
+    __table_args__ = (db.UniqueConstraint("material_id", "student_id", name="uq_material_student_interaction"),)
+
+    id = db.Column(db.Integer, primary_key=True)
+    material_id = db.Column(db.Integer, db.ForeignKey("course_material.id"), nullable=False)
+    student_id = db.Column(db.Integer, db.ForeignKey("student.id"), nullable=False)
+    first_interacted_at = db.Column(db.DateTime, nullable=False, default=datetime.now)
+    last_interacted_at = db.Column(db.DateTime, nullable=False, default=datetime.now)
+    interaction_count = db.Column(db.Integer, nullable=False, default=1)
+
+    material = db.relationship("CourseMaterial", back_populates="interactions", lazy="joined")
+    student = db.relationship("Student", back_populates="material_interactions", lazy="joined")
 
 
 class Assignment(db.Model):
@@ -112,9 +146,14 @@ class AssignmentSubmission(db.Model):
     submitted_at = db.Column(db.DateTime, nullable=False, default=datetime.now)
     attempt_number = db.Column(db.Integer, nullable=False)
     status = db.Column(db.String(32), nullable=False, default="submitted")
+    grade = db.Column(db.Float, nullable=True)
+    feedback = db.Column(db.Text, nullable=True)
+    graded_at = db.Column(db.DateTime, nullable=True)
+    graded_by_lecturer_id = db.Column(db.Integer, db.ForeignKey("lecturer.id"), nullable=True)
 
     assignment = db.relationship("Assignment", back_populates="submissions", lazy="joined")
     student = db.relationship("Student", back_populates="submissions", lazy="joined")
+    graded_by = db.relationship("Lecturer", lazy="joined")
 
 
 class Announcement(db.Model):
@@ -140,9 +179,17 @@ class Student(db.Model, PasswordMixin):
     email = db.Column(db.String(256), unique=True, nullable=False)
     enrollment_year = db.Column(db.Integer, nullable=True)
     is_member = db.Column(db.Boolean, nullable=False, default=False)
+    skills = db.Column(db.Text, nullable=True)
+    collaboration_mode = db.Column(db.String(32), nullable=True)
+    availability_start_day = db.Column(db.Integer, nullable=True)
+    availability_end_day = db.Column(db.Integer, nullable=True)
+    availability_start_time = db.Column(db.String(5), nullable=True)
+    availability_end_time = db.Column(db.String(5), nullable=True)
 
     courses = db.relationship("Course", secondary=student_courses, back_populates="students", lazy="select")
     submissions = db.relationship("AssignmentSubmission", back_populates="student", lazy="select")
+    material_comments = db.relationship("MaterialComment", back_populates="student", lazy="select", cascade="all, delete-orphan")
+    material_interactions = db.relationship("MaterialInteraction", back_populates="student", lazy="select", cascade="all, delete-orphan")
 
     def __repr__(self) -> str:
         return f"<Student {self.name} id={self.id}>"
