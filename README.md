@@ -4,7 +4,7 @@ Course Collaboration Platform for XBAU2114N course
 
 ## Minimum Requirements
 
-* > Python 3.12
+* > Python 3.13
 
 ## Test accounts
 
