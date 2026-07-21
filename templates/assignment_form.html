@@ -1,0 +1,16 @@
+{% extends "_base.html" %}
+
+{% block title %}Edit Assignment{% endblock %}
+
+{% block content %}
+<header class="page-header"><div><p class="eyebrow">{{ course.code }}</p><h1>Edit Assignment</h1></div></header>
+<section class="panel narrow">
+    <form class="form-stack" method="post">
+        <label>Title <input type="text" name="title" value="{{ assignment.title }}" autocomplete="off" required></label>
+        <label>Requirements <textarea name="requirements" autocomplete="off" required>{{ assignment.requirements }}</textarea></label>
+        <label>Deadline <input type="datetime-local" name="deadline" value="{{ assignment.deadline.strftime('%Y-%m-%dT%H:%M') }}" autocomplete="off" required></label>
+        <button type="submit">Update Assignment</button>
+        <a class="button secondary" href="{{ url_for('lecturer_assignments', course_id=course.id) }}">Back to Assignments</a>
+    </form>
+</section>
+{% endblock %}

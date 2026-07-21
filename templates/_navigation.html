@@ -1,0 +1,23 @@
+<nav class="top-nav" aria-label="Primary navigation">
+    <a class="brand" href="{{ url_for('dashboard') }}" translate="no">
+        <span class="brand-mark" aria-hidden="true">CC</span>
+        <span>Course Collaboration</span>
+    </a>
+    <div class="nav-links">
+        <a href="{{ url_for('dashboard') }}" {% if request.endpoint in ["dashboard", "admin_dashboard"] %}aria-current="page"{% endif %}>Dashboard</a>
+        {% if current_user_type == "student" %}
+            <a href="{{ url_for('courses') }}" {% if request.endpoint in ["courses", "course_detail"] %}aria-current="page"{% endif %}>My Courses</a>
+            <a href="{{ url_for('course_catalogue') }}" {% if request.endpoint in ["course_catalogue", "enroll_courses", "confirm_enrollment"] %}aria-current="page"{% endif %}>Catalogue</a>
+            <a href="{{ url_for('student_profile') }}" {% if request.endpoint == "student_profile" %}aria-current="page"{% endif %}>Profile</a>
+        {% elif current_user_type == "lecturer" %}
+            <a href="{{ url_for('courses') }}" {% if request.endpoint in ["courses", "lecturer_course_detail", "lecturer_materials", "lecturer_assignments", "lecturer_announcements", "lecturer_submissions"] %}aria-current="page"{% endif %}>Courses</a>
+            <a href="{{ url_for('course_proposals') }}" {% if request.endpoint in ["course_proposals", "edit_course_proposal"] %}aria-current="page"{% endif %}>Proposals</a>
+        {% elif current_user_type == "admin" %}
+            <a href="{{ url_for('admin_lecturers') }}" {% if request.endpoint == "admin_lecturers" %}aria-current="page"{% endif %}>Lecturers</a>
+            <a href="{{ url_for('admin_students') }}" {% if request.endpoint == "admin_students" %}aria-current="page"{% endif %}>Students</a>
+            <a href="{{ url_for('admin_reports') }}" {% if request.endpoint == "admin_reports" %}aria-current="page"{% endif %}>Reports</a>
+            <a href="{{ url_for('course_approvals') }}" {% if request.endpoint == "course_approvals" %}aria-current="page"{% endif %}>Approvals</a>
+        {% endif %}
+        <a href="{{ url_for('logout') }}">Logout</a>
+    </div>
+</nav>

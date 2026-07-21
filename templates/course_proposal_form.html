@@ -1,0 +1,15 @@
+{% extends "_base.html" %}
+
+{% block title %}Edit Proposal{% endblock %}
+
+{% block content %}
+<header class="page-header"><div><p class="eyebrow">{{ proposal.code }}</p><h1>Edit Pending Proposal</h1></div></header>
+<section class="panel narrow">
+    <form class="form-stack" method="post">
+        <label>Title <input type="text" name="title" value="{{ proposal.title }}" autocomplete="off" required></label>
+        <label>Description <textarea name="description" autocomplete="off">{{ proposal.description or "" }}</textarea></label>
+        <button type="submit">Update Proposal</button>
+        <a class="button secondary" href="{{ url_for('course_proposals') }}">Back to Proposals</a>
+    </form>
+</section>
+{% endblock %}

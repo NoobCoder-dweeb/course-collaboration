@@ -1,0 +1,20 @@
+{% extends "_base.html" %}
+
+{% block title %}Student Sign Up{% endblock %}
+
+{% block content %}
+<section class="auth-panel">
+    <p class="eyebrow">Student registration</p>
+    <h1>Sign up</h1>
+    <p class="muted">New student accounts start as non-members.</p>
+    {% if error %}<p class="alert error" role="alert">{{ error }}</p>{% endif %}
+    <form class="form-stack" method="post">
+        <label>Name <input type="text" name="name" autocomplete="name" required></label>
+        <label>Email <input type="email" name="email" autocomplete="email" spellcheck="false" required></label>
+        <label>Password <input type="password" name="password" autocomplete="new-password" required></label>
+        <label>Confirm password <input type="password" name="password_confirm" autocomplete="new-password" required></label>
+        <button type="submit">Create Student Account</button>
+    </form>
+    <p class="form-note"><a href="{{ url_for('login') }}">Back to login</a></p>
+</section>
+{% endblock %}

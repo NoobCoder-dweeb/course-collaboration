@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Course Collaboration helps students, lecturers, and administrators manage courses, assignments, materials, announcements, and enrollment.">
+    <meta name="theme-color" content="#eef3f0">
+    <meta property="og:title" content="{% block og_title %}Course Collaboration{% endblock %}">
+    <meta property="og:description" content="A focused course workspace for academic collaboration.">
+    <title>{% block title %}Course Collaboration{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    {% if current_user %}
+        {% include "_navigation.html" %}
+    {% endif %}
+    <main id="main-content" class="{% if current_user %}page-shell{% else %}auth-shell{% endif %}" tabindex="-1">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <p class="alert {{ category }}" role="status" aria-live="polite">{{ message }}</p>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </main>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

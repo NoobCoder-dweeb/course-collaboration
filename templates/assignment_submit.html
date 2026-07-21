@@ -1,0 +1,52 @@
+{% extends "_base.html" %}
+{% from "_empty_state.html" import empty_state %}
+
+{% block title %}Submit Assignment{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <p class="eyebrow">{{ assignment.course.code }}</p>
+        <h1>{{ assignment.title }}</h1>
+        <p class="muted">Due {{ assignment.deadline.strftime("%d %b %Y %H:%M") }}</p>
+    </div>
+</header>
+
+<section class="summary-grid">
+    <div class="panel">
+        <h2>Requirements</h2>
+        <p>{{ assignment.requirements }}</p>
+        <div class="stats">
+            <div class="stat"><span>Membership</span><strong>{{ "Member" if current_user.is_member else "Non-member" }}</strong></div>
+            <div class="stat"><span>Attempts</span><strong>{{ "Unlimited" if current_user.is_member else remaining_attempts ~ " remaining" }}</strong></div>
+        </div>
+        {% if after_deadline %}
+            <p class="alert error">The deadline has passed. Submissions are closed.</p>
+        {% elif remaining_attempts == 0 %}
+            <p class="alert error">You have used both allowed attempts for this assignment.</p>
+        {% else %}
+            <form class="form-stack" method="post" enctype="multipart/form-data">
+                <label>Submission file <input type="file" name="submission_file" required></label>
+                <button type="submit">Submit Attempt</button>
+            </form>
+        {% endif %}
+    </div>
+    <div class="panel">
+        <h2>Attempt History</h2>
+        {% if submissions %}
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>Attempt</th><th>Submitted</th><th>Status</th><th>Grade</th><th>File</th></tr></thead>
+                    <tbody>
+                    {% for submission in submissions %}
+                        <tr><td>{{ submission.attempt_number }}</td><td>{{ submission.submitted_at.strftime("%d %b %Y %H:%M") }}</td><td>{{ submission.status }}</td><td>{% if submission.grade is not none %}<strong>{{ "%g"|format(submission.grade) }}/100</strong>{% if submission.feedback %}<span class="muted block">{{ submission.feedback }}</span>{% endif %}{% else %}<span class="muted">Pending</span>{% endif %}</td><td><a href="{{ url_for('download_file', stored_path=submission.file_path) }}">Download</a></td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            {{ empty_state("No submissions yet", "Your attempt history will appear after you upload a file.") }}
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

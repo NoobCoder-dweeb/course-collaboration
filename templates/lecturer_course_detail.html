@@ -1,0 +1,20 @@
+{% extends "_base.html" %}
+
+{% block title %}{{ course.code }} Management{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div><p class="eyebrow">{{ course.code }}</p><h1>{{ course.title }}</h1><p class="muted">{{ course.description }}</p></div>
+</header>
+
+<section class="stats">
+    <div class="stat"><span>Students</span><strong>{{ course.students|length }}</strong></div>
+    <div class="stat"><span>Materials</span><strong>{{ course.materials|length }}</strong></div>
+    <div class="stat"><span>Assignments</span><strong>{{ course.assignments|length }}</strong></div>
+</section>
+<section class="link-grid">
+    <a class="link-card" href="{{ url_for('lecturer_materials', course_id=course.id) }}"><strong>Materials</strong><span class="muted">Create, edit, and delete resources.</span></a>
+    <a class="link-card" href="{{ url_for('lecturer_assignments', course_id=course.id) }}"><strong>Assignments</strong><span class="muted">Create assignments and review attempts.</span></a>
+    <a class="link-card" href="{{ url_for('lecturer_announcements', course_id=course.id) }}"><strong>Announcements</strong><span class="muted">Post course updates.</span></a>
+</section>
+{% endblock %}

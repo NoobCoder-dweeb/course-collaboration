@@ -1,0 +1,25 @@
+{% extends "_base.html" %}
+{% from "_empty_state.html" import empty_state %}
+
+{% block title %}Course Proposals{% endblock %}
+
+{% block content %}
+<header class="page-header"><div><p class="eyebrow">Lecturer</p><h1>Course Proposals</h1></div></header>
+<section class="summary-grid">
+    <div class="panel">
+        <h2>New Proposal</h2>
+        <form class="form-stack" method="post">
+            <label>Code <input type="text" name="code" autocomplete="off" required></label>
+            <label>Title <input type="text" name="title" autocomplete="off" required></label>
+            <label>Description <textarea name="description" autocomplete="off"></textarea></label>
+            <button type="submit">Submit Proposal</button>
+        </form>
+    </div>
+    <div class="panel">
+        <h2>My Proposals</h2>
+        {% for proposal in proposals %}
+            <article class="item"><strong>{{ proposal.code }} - {{ proposal.title }}</strong><span class="badge {{ 'pending' if proposal.status == 'pending' else 'active' if proposal.status == 'approved' else '' }}">{{ proposal.status|title }}</span><p>{{ proposal.description }}</p>{% if proposal.status == "pending" %}<a href="{{ url_for('edit_course_proposal', course_id=proposal.id) }}">Edit pending proposal</a>{% endif %}</article>
+        {% else %}{{ empty_state("No proposals yet", "Submit a new proposal for admin review.") }}{% endfor %}
+    </div>
+</section>
+{% endblock %}

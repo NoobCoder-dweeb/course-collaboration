@@ -1,0 +1,19 @@
+{% extends "_base.html" %}
+{% from "_empty_state.html" import empty_state %}
+
+{% block title %}My Courses{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div><p class="eyebrow">Student</p><h1>My Courses</h1></div>
+    <a class="button" href="{{ url_for('course_catalogue') }}">Course Catalogue</a>
+</header>
+
+<section class="link-grid">
+    {% for course in courses %}
+        <a class="link-card" href="{{ url_for('course_detail', course_id=course.id) }}"><strong>{{ course.code }}</strong><span class="muted">{{ course.title }}</span></a>
+    {% else %}
+        {{ empty_state("No enrolled courses", "Browse the catalogue to choose courses for this term.", "Open Catalogue", url_for("course_catalogue")) }}
+    {% endfor %}
+</section>
+{% endblock %}

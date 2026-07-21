@@ -4,4 +4,7 @@ pyproject.toml
 .venv
 __pycache__
 instance
+uploads
 *.lock
+*.json
+*.agents

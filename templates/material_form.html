@@ -1,0 +1,21 @@
+{% extends "_base.html" %}
+
+{% block title %}Edit Material{% endblock %}
+
+{% block content %}
+<header class="page-header"><div><p class="eyebrow">{{ course.code }}</p><h1>Edit Material</h1></div></header>
+<section class="panel narrow">
+    <form class="form-stack" method="post" enctype="multipart/form-data">
+        <label>Title <input type="text" name="title" value="{{ material.title }}" autocomplete="off" required></label>
+        <label>Description <textarea name="description" autocomplete="off">{{ material.description or "" }}</textarea></label>
+        <label>Week <input type="number" name="week_number" min="1" max="52" value="{{ material.week_number or '' }}"></label>
+        <label>Topic <input type="text" name="topic" value="{{ material.topic or '' }}" autocomplete="off"></label>
+        <label>Type <input type="text" name="material_type" value="{{ material.material_type or '' }}" autocomplete="off"></label>
+        <label class="checkbox-label"><input type="checkbox" name="discussion_enabled" value="1" {% if material.discussion_enabled %}checked{% endif %}> Enable student discussion</label>
+        <label class="checkbox-label"><input type="checkbox" name="is_priority" value="1" {% if material.is_priority %}checked{% endif %}> Priority material (members only)</label>
+        <label class="file-upload">Replace file <input type="file" name="material_file" accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg,.zip"><span>Supported files: PDF, DOC, DOCX, TXT, PNG, JPG, JPEG, ZIP.</span></label>
+        <button type="submit">Update Material</button>
+        <a class="button secondary" href="{{ url_for('lecturer_materials', course_id=course.id) }}">Back to Materials</a>
+    </form>
+</section>
+{% endblock %}

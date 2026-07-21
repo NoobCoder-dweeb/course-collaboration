@@ -1,0 +1,41 @@
+{% extends "_base.html" %}
+
+{% block title %}Lecturer Accounts{% endblock %}
+
+{% block content %}
+<header class="page-header"><div><p class="eyebrow">Admin</p><h1>Lecturer Accounts</h1></div></header>
+<section class="report-stack">
+    <div class="panel">
+        <h2>Create Lecturer</h2>
+        <form class="form-stack" method="post">
+            <label>Name <input type="text" name="name" autocomplete="name" required></label>
+            <label>Email <input type="email" name="email" autocomplete="email" spellcheck="false" required></label>
+            <label>Temporary password <input type="password" name="password" autocomplete="new-password" required></label>
+            <label>Department <input type="text" name="department" autocomplete="organization"></label>
+            <button type="submit">Create Lecturer</button>
+        </form>
+    </div>
+    <div class="panel">
+        <h2>Existing Lecturers</h2>
+        <form class="inline-form" method="get">
+            <label>Search <input type="search" name="q" value="{{ q }}" placeholder="Lecturer name" autocomplete="off"></label>
+            <button type="submit">Search</button>
+            {% if q %}<a class="button secondary" href="{{ url_for('admin_lecturers') }}">Clear</a>{% endif %}
+            {% if not delete_mode %}<a class="button danger" href="{{ url_for('admin_lecturers', q=q, delete=1) }}">Delete</a>{% endif %}
+        </form>
+        {% if delete_mode %}
+        <form id="delete-lecturers-form" method="post" onsubmit="return confirm('Delete selected lecturer accounts? Course materials and announcements created by those lecturers will also be deleted.');">
+            <input type="hidden" name="action" value="delete">
+            <input type="hidden" name="q" value="{{ q }}">
+            <div class="table-wrap report-table"><table><thead><tr><th aria-label="Select"></th><th>Name</th><th>Email</th><th>Department</th></tr></thead><tbody>{% for lecturer in lecturers %}<tr><td><input aria-label="Select {{ lecturer.name }}" type="checkbox" name="lecturer_ids" value="{{ lecturer.id }}"></td><td>{{ lecturer.name }}</td><td>{{ lecturer.email }}</td><td>{{ lecturer.department or "-" }}</td></tr>{% else %}<tr><td colspan="4" class="muted">No lecturers match your search.</td></tr>{% endfor %}</tbody></table></div>
+            <div class="button-row">
+                <a class="button secondary" href="{{ url_for('admin_lecturers', q=q) }}">Cancel</a>
+                <button class="danger" type="submit">Confirm Delete Selected</button>
+            </div>
+        </form>
+        {% else %}
+        <div class="table-wrap report-table"><table><thead><tr><th>Name</th><th>Email</th><th>Department</th></tr></thead><tbody>{% for lecturer in lecturers %}<tr><td>{{ lecturer.name }}</td><td>{{ lecturer.email }}</td><td>{{ lecturer.department or "-" }}</td></tr>{% else %}<tr><td colspan="3" class="muted">No lecturers match your search.</td></tr>{% endfor %}</tbody></table></div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

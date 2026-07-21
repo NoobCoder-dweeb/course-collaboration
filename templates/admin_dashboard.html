@@ -1,0 +1,25 @@
+{% extends "_base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <p class="eyebrow">Admin</p>
+        <h1>University Management</h1>
+    </div>
+</header>
+
+<section class="stats">
+    <div class="stat"><span>Students</span><strong>{{ student_count }}</strong></div>
+    <div class="stat"><span>Lecturers</span><strong>{{ lecturer_count }}</strong></div>
+    <div class="stat"><span>Pending Proposals</span><strong>{{ pending_count }}</strong></div>
+</section>
+
+<section class="link-grid">
+    <a class="link-card" href="{{ url_for('admin_lecturers') }}"><strong>Lecturer Accounts</strong><span class="muted">Create lecturer login accounts.</span></a>
+    <a class="link-card" href="{{ url_for('admin_students') }}"><strong>Student Membership</strong><span class="muted">Set member or non-member status.</span></a>
+    <a class="link-card" href="{{ url_for('admin_reports') }}"><strong>Reports</strong><span class="muted">View browser-based activity reports.</span></a>
+    <a class="link-card" href="{{ url_for('course_approvals') }}"><strong>Course Approvals</strong><span class="muted">Approve or reject proposals.</span></a>
+</section>
+{% endblock %}

@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "_base.html" %}
 
 {% block title %}Enroll Courses{% endblock %}
 
@@ -11,93 +11,34 @@
 </header>
 
 <section class="panel">
-    {% if message %}
-        <p class="alert success">{{ message }}</p>
-    {% endif %}
     {% if errors %}
-        <ul class="alert error">
-            {% for error in errors %}
-                <li>{{ error }}</li>
-            {% endfor %}
-        </ul>
+        <ul class="alert error" role="alert">{% for error in errors %}<li>{{ error }}</li>{% endfor %}</ul>
     {% endif %}
-
     <div class="stats">
-        <div class="stat">
-            <span>Selected Credits</span>
-            <strong>{{ total_credits }} / {{ max_credit_hours }}</strong>
-        </div>
-        <div class="stat">
-            <span>Prerequisite Rule</span>
-            <strong>Passed before semester</strong>
-        </div>
+        <div class="stat"><span>Rule</span><strong>No course dropping in this version</strong></div>
     </div>
-
     <form method="post">
         <div class="table-wrap">
             <table>
-                <thead>
-                    <tr>
-                        <th>Select</th>
-                        <th>Course</th>
-                        <th>Credits</th>
-                        <th>Prerequisites</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
+                <thead><tr><th aria-label="Select"></th><th>Course</th><th>Status</th></tr></thead>
                 <tbody>
                     {% for course in courses %}
-                        <tr>
-                            <td>
-                                <input
-                                    type="checkbox"
-                                    name="course_ids"
-                                    value="{{ course.id }}"
-                                    {% if course.id in selected_ids %}checked{% endif %}
-                                >
-                            </td>
-                            <td>
-                                <span class="course-title">{{ course.code }}</span>
-                                <span class="muted">{{ course.title }}</span>
-                            </td>
-                            <td>{{ course.credits or 0 }}</td>
-                            <td>
-                                {% if course.prerequisites %}
-                                    {{ course.prerequisites | map(attribute="code") | join(", ") }}
-                                {% else %}
-                                    None
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if course.id in pending_add_ids %}
-                                    <span class="badge pending">Pending add</span>
-                                {% elif course.id in pending_drop_ids %}
-                                    <span class="badge pending">Pending drop</span>
-                                {% elif course.id in current_ids %}
-                                    <span class="badge active">Enrolled</span>
-                                {% elif course.id in passed_ids %}
-                                    <span class="badge">Passed</span>
-                                {% else %}
-                                    <span class="badge">Available</span>
-                                {% endif %}
-                            </td>
-                        </tr>
+                    <tr>
+                        <td><input aria-label="Select {{ course.code }}" type="checkbox" name="course_ids" value="{{ course.id }}" {% if course.id in selected_ids %}checked{% endif %} {% if course.id in current_ids %}disabled{% endif %}></td>
+                        <td><strong>{{ course.code }}</strong><span class="muted block">{{ course.title }}</span></td>
+                        <td>
+                            {% if course.id in current_ids %}<span class="badge active">Enrolled</span>
+                            {% else %}<span class="badge">Available</span>{% endif %}
+                        </td>
+                    </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
-
+        {% for course_id in current_ids %}<input type="hidden" name="course_ids" value="{{ course_id }}">{% endfor %}
         <div class="button-row">
-            <button class="button secondary" type="submit" name="action" value="preview">Update Preview</button>
-            <button type="submit" name="action" value="save">Save Changes</button>
+            <button type="submit">Continue to Confirmation</button>
         </div>
     </form>
-</section>
-
-<section class="link-grid">
-    <a class="link-card" href="{{ url_for('dashboard') }}">
-        <strong>Back to Dashboard</strong>
-        <span class="muted">Return to your student dashboard.</span>
-    </a>
 </section>
 {% endblock %}
