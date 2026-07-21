@@ -13,13 +13,31 @@
             <span class="form-note">Add subjects, tools, or practical experience, separated by commas.</span>
         </label>
         <label>Preferred collaboration mode
-            <select name="collaboration_mode">
-                <option value="">Select a preference</option>
-                {% for mode in ["Online", "In person", "Hybrid", "Flexible"] %}
+            <select name="collaboration_mode" required>
+                <option value="" disabled {% if not student.collaboration_mode %}selected{% endif %}>Select a preference</option>
+                {% for mode in ["Online", "Offline"] %}
                     <option value="{{ mode }}" {% if student.collaboration_mode == mode %}selected{% endif %}>{{ mode }}</option>
                 {% endfor %}
             </select>
         </label>
+        <fieldset>
+            <legend>Weekly availability</legend>
+            <p class="form-note">Choose a continuous day and time range when you are generally available to collaborate.</p>
+            <div class="form-grid">
+                <label>From day
+                    <select name="availability_start_day" required>
+                        {% for day in weekdays %}<option value="{{ loop.index0 }}" {% if student.availability_start_day == loop.index0 %}selected{% endif %}>{{ day }}</option>{% endfor %}
+                    </select>
+                </label>
+                <label>To day
+                    <select name="availability_end_day" required>
+                        {% for day in weekdays %}<option value="{{ loop.index0 }}" {% if student.availability_end_day == loop.index0 or (student.availability_end_day is none and loop.index0 == 4) %}selected{% endif %}>{{ day }}</option>{% endfor %}
+                    </select>
+                </label>
+                <label>Available from <input type="time" name="availability_start_time" value="{{ student.availability_start_time or '09:00' }}" required></label>
+                <label>Available until <input type="time" name="availability_end_time" value="{{ student.availability_end_time or '17:00' }}" required></label>
+            </div>
+        </fieldset>
         <button type="submit">Save profile</button>
     </form>
 </section>

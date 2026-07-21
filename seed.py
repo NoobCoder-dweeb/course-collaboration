@@ -41,8 +41,8 @@ def main() -> None:
         admin = password_user(Admin, "Fixed Admin", "admin@example.com")
         lecturer = password_user(Lecturer, "Test Lecturer", "lecturer@example.com", department="Computer Science")
         lecturer_two = password_user(Lecturer, "Second Lecturer", "lecturer2@example.com", department="Information Systems")
-        student = password_user(Student, "Test Student", "student@example.com", enrollment_year=2026, is_member=False, skills="Python, computing, UI design", collaboration_mode="Hybrid")
-        member = password_user(Student, "Member Student", "member@example.com", enrollment_year=2026, is_member=True, skills="Database design, data analysis", collaboration_mode="Online")
+        student = password_user(Student, "Test Student", "student@example.com", enrollment_year=2026, is_member=False, skills="Python, computing, UI design", collaboration_mode="Offline", availability_start_day=0, availability_end_day=4, availability_start_time="09:00", availability_end_time="17:00")
+        member = password_user(Student, "Member Student", "member@example.com", enrollment_year=2026, is_member=True, skills="Database design, data analysis", collaboration_mode="Online", availability_start_day=1, availability_end_day=5, availability_start_time="10:00", availability_end_time="18:00")
 
         courses = {}
         for code, title, description in COURSES:

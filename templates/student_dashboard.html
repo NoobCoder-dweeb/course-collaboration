@@ -18,7 +18,7 @@
 </section>
 
 <section class="panel profile-summary">
-    <div><h2>Collaboration Profile</h2><p><strong>Skills:</strong> {{ student.skills or "Not added yet" }}</p><p><strong>Preferred mode:</strong> {{ student.collaboration_mode or "Not selected" }}</p></div>
+    <div><h2>Collaboration Profile</h2><p><strong>Skills:</strong> {{ student.skills or "Not added yet" }}</p><p><strong>Preferred mode:</strong> {{ student.collaboration_mode or "Not selected" }}</p><p><strong>Availability:</strong> {% if student.availability_start_day is not none and student.availability_end_day is not none %}{{ weekdays[student.availability_start_day] }}{% if student.availability_end_day != student.availability_start_day %} – {{ weekdays[student.availability_end_day] }}{% endif %}, {{ student.availability_start_time }} – {{ student.availability_end_time }}{% else %}Not added yet{% endif %}</p></div>
     <a class="button secondary" href="{{ url_for('student_profile') }}">Edit profile</a>
 </section>
 

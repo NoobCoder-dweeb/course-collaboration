@@ -181,6 +181,10 @@ class Student(db.Model, PasswordMixin):
     is_member = db.Column(db.Boolean, nullable=False, default=False)
     skills = db.Column(db.Text, nullable=True)
     collaboration_mode = db.Column(db.String(32), nullable=True)
+    availability_start_day = db.Column(db.Integer, nullable=True)
+    availability_end_day = db.Column(db.Integer, nullable=True)
+    availability_start_time = db.Column(db.String(5), nullable=True)
+    availability_end_time = db.Column(db.String(5), nullable=True)
 
     courses = db.relationship("Course", secondary=student_courses, back_populates="students", lazy="select")
     submissions = db.relationship("AssignmentSubmission", back_populates="student", lazy="select")

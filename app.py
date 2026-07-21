@@ -14,6 +14,7 @@ from models import (
 
 
 ALLOWED_EXTENSIONS = {"pdf", "doc", "docx", "txt", "png", "jpg", "jpeg", "zip"}
+WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
 
 def current_user_type() -> str | None:
@@ -156,6 +157,10 @@ def ensure_schema_upgrades() -> None:
         "student": {
             "skills": "ALTER TABLE student ADD COLUMN skills TEXT",
             "collaboration_mode": "ALTER TABLE student ADD COLUMN collaboration_mode VARCHAR(32)",
+            "availability_start_day": "ALTER TABLE student ADD COLUMN availability_start_day INTEGER",
+            "availability_end_day": "ALTER TABLE student ADD COLUMN availability_end_day INTEGER",
+            "availability_start_time": "ALTER TABLE student ADD COLUMN availability_start_time VARCHAR(5)",
+            "availability_end_time": "ALTER TABLE student ADD COLUMN availability_end_time VARCHAR(5)",
         },
         "course_material": {
             "week_number": "ALTER TABLE course_material ADD COLUMN week_number INTEGER",
@@ -175,6 +180,7 @@ def ensure_schema_upgrades() -> None:
         for column_name, statement in columns.items():
             if column_name not in existing:
                 db.session.execute(text(statement))
+    db.session.execute(text("UPDATE student SET collaboration_mode = NULL WHERE collaboration_mode IS NOT NULL AND collaboration_mode NOT IN ('Online', 'Offline')"))
     db.session.commit()
 
 
@@ -191,7 +197,7 @@ def create_app(config: dict | None = None) -> Flask:
 
     @app.context_processor
     def inject_user():
-        return {"current_user": current_user(), "current_user_type": current_user_type()}
+        return {"current_user": current_user(), "current_user_type": current_user_type(), "weekdays": WEEKDAYS}
 
     @app.route("/")
     def index():
@@ -263,10 +269,35 @@ def create_app(config: dict | None = None) -> Flask:
     def student_profile():
         student = current_student()
         if request.method == "POST":
-            student.skills = request.form.get("skills", "").strip() or None
             mode = request.form.get("collaboration_mode", "").strip()
-            allowed_modes = {"Online", "In person", "Hybrid", "Flexible"}
-            student.collaboration_mode = mode if mode in allowed_modes else None
+            start_day = request.form.get("availability_start_day", type=int)
+            end_day = request.form.get("availability_end_day", type=int)
+            start_time = request.form.get("availability_start_time", "").strip()
+            end_time = request.form.get("availability_end_time", "").strip()
+            if mode not in {"Online", "Offline"}:
+                flash("Choose either Online or Offline collaboration.", "error")
+                return render_template("student_profile.html", student=student), 400
+            if start_day not in range(7) or end_day not in range(7) or not start_time or not end_time:
+                flash("Complete all availability fields.", "error")
+                return render_template("student_profile.html", student=student), 400
+            try:
+                start_clock = datetime.strptime(start_time, "%H:%M").time()
+                end_clock = datetime.strptime(end_time, "%H:%M").time()
+            except ValueError:
+                flash("Enter valid availability times.", "error")
+                return render_template("student_profile.html", student=student), 400
+            if start_day > end_day:
+                flash("The availability end day must be the same as or later than the start day.", "error")
+                return render_template("student_profile.html", student=student), 400
+            if start_clock >= end_clock:
+                flash("The availability end time must be later than the start time.", "error")
+                return render_template("student_profile.html", student=student), 400
+            student.skills = request.form.get("skills", "").strip() or None
+            student.collaboration_mode = mode
+            student.availability_start_day = start_day
+            student.availability_end_day = end_day
+            student.availability_start_time = start_time
+            student.availability_end_time = end_time
             db.session.commit()
             flash("Your collaboration profile was updated.", "success")
             return redirect(url_for("student_profile"))
